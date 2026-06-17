@@ -770,6 +770,7 @@
     const state = {
       view: "dashboard",
       app: null,
+      busy: false,
       filters: {
         dateFrom: "",
         dateTo: "",
@@ -812,10 +813,18 @@
       `).join("");
       el.nav.querySelectorAll("button").forEach(button => {
         button.addEventListener("click", () => {
+          if (state.busy) return;
+          if (state.view === button.dataset.view) return;
           state.view = button.dataset.view;
           renderNav();
           render();
         });
+      });
+    }
+
+    function setNavActive(viewKey) {
+      el.nav.querySelectorAll("button").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.view === viewKey);
       });
     }
 
@@ -833,11 +842,20 @@
     }
 
     async function loadState() {
+      if (state.busy) return;
+      setBusy(true);
       const res = await server("getAppState", { filters: compactFilters() });
+      setBusy(false);
       if (!res.ok) return toast(res.error.message || "Erro ao carregar.");
       state.app = res.data;
       updateShiftBadge();
       render();
+    }
+
+    function setBusy(on) {
+      state.busy = on;
+      const btn = document.getElementById("btnRefresh");
+      if (btn) btn.textContent = on ? "Aguarde…" : "Atualizar";
     }
 
     function updateShiftBadge() {
@@ -856,6 +874,7 @@
       const navItem = NAV_ITEMS.find(item => item[0] === view);
       el.pageTitle.textContent = navItem ? navItem[2] : "NIR";
       el.pageSubtitle.textContent = subtitleFor(view);
+      setNavActive(view);
 
       if (!state.app) {
         el.content.innerHTML = '<div class="empty">Carregando...</div>';
@@ -866,6 +885,10 @@
       else if (view === "report") renderReport();
       else if (view === "audit") renderAudit();
       else renderModule(view);
+    }
+
+    function contentLoading() {
+      el.content.innerHTML = '<div class="empty" style="padding:40px;">Carregando…</div>';
     }
 
     function subtitleFor(view) {
@@ -987,9 +1010,15 @@
     }
 
     async function renderModule(moduleKey) {
+      if (state.busy) return;
       const meta = MODULES[moduleKey];
+      contentLoading();
+      state.busy = true;
       const res = await server("listRecords", { module: meta.server, filters: compactFilters() });
+      state.busy = false;
+      if (state.view !== moduleKey) return;
       const rows = res.ok ? res.data.rows : [];
+      if (!res.ok) toast(res.error.message || "Erro ao carregar módulo.");
       state.tableRows[moduleKey] = rows;
       el.content.innerHTML = `
         ${renderFilterBand()}
@@ -1145,6 +1174,7 @@
     }
 
     async function renderAudit() {
+      if (state.busy) return;
       const active = state.app.activeShift;
       el.content.innerHTML = `
         <section class="surface">
@@ -1176,10 +1206,13 @@
           <div class="surface-header">
             <div class="surface-title"><h2>Histórico de alterações</h2><span>Últimos eventos registrados em NIR_LOG</span></div>
           </div>
-          <div class="surface-body" id="auditLog"><div class="empty">Carregando histórico...</div></div>
+          <div class="surface-body" id="auditLog"><div class="empty">Carregando histórico…</div></div>
         </section>
       `;
+      state.busy = true;
       const res = await server("listLog", { limit: 100 });
+      state.busy = false;
+      if (state.view !== "audit") return;
       const rows = res.ok && res.data.rows ? res.data.rows : [];
       const target = document.getElementById("auditLog");
       if (!target) return;
@@ -1276,14 +1309,20 @@
 
     async function submitDrawer(event) {
       event.preventDefault();
-      if (!state.editing) return;
+      if (!state.editing || state.busy) return;
       const formData = new FormData(el.drawerForm);
       const data = Object.fromEntries(formData.entries());
       if (state.editing.row && state.editing.row.id) data.id = state.editing.row.id;
 
+      const saveBtn = el.drawerForm.querySelector('[type="submit"]');
+      if (saveBtn) saveBtn.textContent = "Salvando…";
+      state.busy = true;
+
       if (state.editing.type === "shift") {
         const fn = state.app && state.app.activeShift ? "updateShift" : "startShift";
         const res = await server(fn, data);
+        state.busy = false;
+        if (saveBtn) saveBtn.textContent = "Salvar";
         if (!res.ok) return toast(res.error.message || "Erro no plantão.");
         closeDrawer();
         toast("Plantão salvo.");
@@ -1292,6 +1331,8 @@
       }
 
       const res = await server("saveRecord", { module: state.editing.moduleKey, record: data });
+      state.busy = false;
+      if (saveBtn) saveBtn.textContent = "Salvar";
       if (!res.ok) return toast(res.error.message || "Erro ao salvar.");
       closeDrawer();
       toast("Registro salvo.");
@@ -1301,8 +1342,11 @@
 
     async function closeShift() {
       if (!state.app || !state.app.activeShift) return toast("Nenhum plantão ativo.");
+      if (state.busy) return;
       if (!confirm("Encerrar o plantão e salvar snapshot do relatório?")) return;
+      setBusy(true);
       const res = await server("closeShift", { filters: compactFilters() });
+      setBusy(false);
       if (!res.ok) return toast(res.error.message || "Erro ao encerrar.");
       state.report = res.data.report;
       toast("Plantão encerrado e relatório salvo.");
