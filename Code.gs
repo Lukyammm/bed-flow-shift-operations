@@ -457,7 +457,7 @@ function readObjects_(moduleKey, options) {
     .map(function (row) {
       const obj = {};
       headers.forEach(function (header, index) {
-        obj[header] = normalizeCell_(row[index]);
+        obj[header] = normalizeCell_(row[index], header);
       });
       return obj;
     })
@@ -742,12 +742,25 @@ function writeLog_(moduleKey, action, recordId, before, after, observation) {
   }
 }
 
-function normalizeCell_(value) {
+function normalizeCell_(value, header) {
   if (value === null || value === undefined) return "";
   if (Object.prototype.toString.call(value) === "[object Date]") {
-    return Utilities.formatDate(value, NIR_TIMEZONE, "yyyy-MM-dd'T'HH:mm:ss");
+    const pattern = isDateOnlyField_(header) ? "yyyy-MM-dd" : "yyyy-MM-dd'T'HH:mm:ss";
+    return Utilities.formatDate(value, NIR_TIMEZONE, pattern);
   }
   return value;
+}
+
+function isDateOnlyField_(header) {
+  return [
+    "data",
+    "data_solicitacao",
+    "data_internacao",
+    "data_programacao",
+    "ultimo_contato",
+    "data_inicio",
+    "previsao"
+  ].indexOf(header) !== -1;
 }
 
 function generateId_(prefix) {

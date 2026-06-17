@@ -141,6 +141,10 @@
       color: var(--muted);
     }
 
+    .topbar-title {
+      min-width: 0;
+    }
+
     .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -438,6 +442,10 @@
       border-radius: inherit;
     }
 
+    .filter-band .toolbar {
+      min-width: 0;
+    }
+
     .report-preview {
       white-space: pre-wrap;
       border: 1px solid var(--line);
@@ -546,7 +554,7 @@
       .split { grid-template-columns: 1fr; }
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 860px) {
       .topbar {
         align-items: stretch;
         flex-direction: column;
@@ -566,9 +574,19 @@
       #btnCloseShift {
         grid-column: 1 / -1;
       }
+    }
+
+    @media (max-width: 720px) {
       .content { padding: 14px; }
       .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .stat-row, .grid-2, .grid-3, .grid-4, .filter-band { grid-template-columns: 1fr; }
+      .filter-band .toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .filter-band .toolbar .btn {
+        width: 100%;
+      }
       .bar-line { grid-template-columns: 1fr; }
     }
 
@@ -596,7 +614,7 @@
 
     <main class="main">
       <header class="topbar">
-        <div>
+        <div class="topbar-title">
           <h1 id="pageTitle">Painel do plantão</h1>
           <small id="pageSubtitle">Núcleo Interno de Regulação</small>
         </div>
@@ -859,7 +877,7 @@
         return;
       }
       el.shiftBadge.classList.remove("closed");
-      el.shiftBadge.innerHTML = `<span class="status-dot"></span>${shift.data || "-"} · ${shift.turno || "-"} · aberto`;
+      el.shiftBadge.innerHTML = `<span class="status-dot"></span>${formatDateBr(shift.data) || "-"} · ${shift.turno || "-"} · aberto`;
     }
 
     function render() {
@@ -1178,7 +1196,7 @@
           <div class="surface-body grid grid-2">
             <div>
               <h3>Plantão</h3>
-              <p>Plantão ativo: <strong>${active ? `${esc(active.data)} ${esc(active.turno)}` : "nenhum"}</strong></p>
+              <p>Plantão ativo: <strong>${active ? `${esc(formatDateBr(active.data))} ${esc(active.turno)}` : "nenhum"}</strong></p>
               <p>Ao encerrar, o sistema salva snapshot do relatório e limpa o plantão ativo.</p>
             </div>
             <div>
@@ -1238,6 +1256,35 @@
       return isNaN(date) ? String(value) : date.toLocaleString("pt-BR");
     }
 
+    function normalizeDateValue(value) {
+      if (!value) return "";
+      if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value)) {
+        return value.toISOString().slice(0, 10);
+      }
+      const text = String(value).trim();
+      const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+      const br = text.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
+      if (br) {
+        const year = br[3].length === 2 ? `20${br[3]}` : br[3];
+        return `${year}-${pad2(br[2])}-${pad2(br[1])}`;
+      }
+      const date = new Date(text.replace(" ", "T"));
+      if (isNaN(date)) return "";
+      return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    }
+
+    function formatDateBr(value) {
+      const normalized = normalizeDateValue(value);
+      if (!normalized) return value ? String(value) : "";
+      const parts = normalized.split("-");
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    function isDateOnlyKey(key) {
+      return ["data", "data_solicitacao", "data_internacao", "data_programacao", "ultimo_contato", "data_inicio", "previsao"].includes(key);
+    }
+
     function openRecordDrawer(moduleKey, row = {}) {
       const meta = MODULES[moduleKey];
       state.editing = { type: "record", moduleKey, row };
@@ -1277,6 +1324,7 @@
     function renderField(field, row) {
       const [name, title, type, options] = field;
       const value = row && row[name] ? row[name] : "";
+      const inputValue = type === "date" ? normalizeDateValue(value) : value;
       if (type === "textarea") {
         return `<div class="field" style="grid-column: 1 / -1;"><label>${esc(title)}</label><textarea class="textarea" name="${name}">${esc(value)}</textarea></div>`;
       }
@@ -1287,7 +1335,7 @@
           ${(opts || []).map(opt => `<option value="${esc(opt)}" ${String(value) === String(opt) ? "selected" : ""}>${esc(opt)}</option>`).join("")}
         </select></div>`;
       }
-      return `<div class="field"><label>${esc(title)}</label><input class="input" type="${type}" name="${name}" value="${esc(value)}"></div>`;
+      return `<div class="field"><label>${esc(title)}</label><input class="input" type="${type}" name="${name}" value="${esc(inputValue)}"></div>`;
     }
 
     function openDrawer() {
@@ -1369,6 +1417,7 @@
         const type = /NEGADO|CANCELADO|BLOQUEADO/.test(value) ? "danger" : /RESERVADO|PENDENTE|AGUARDA|FALTA/.test(value) ? "warn" : /INTERNADO|CONCLUIDO|REALIZADO|LIVRE/.test(value) ? "ok" : "info";
         return `<span class="tag ${type}">${esc(value)}</span>`;
       }
+      if (isDateOnlyKey(key)) return esc(formatDateBr(value));
       return esc(value);
     }
 
@@ -1382,6 +1431,10 @@
 
     function today() {
       return new Date().toISOString().slice(0, 10);
+    }
+
+    function pad2(value) {
+      return String(value).padStart(2, "0");
     }
 
     function toast(message) {
