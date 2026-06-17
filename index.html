@@ -798,6 +798,8 @@
         onlyPending: false
       },
       tableRows: {},
+      moduleCache: {},
+      moduleRequests: {},
       report: null,
       editing: null
     };
@@ -1027,6 +1029,79 @@
 
     async function renderModule(moduleKey, token) {
       const meta = MODULES[moduleKey];
+      const filters = compactFilters();
+      const cacheKey = moduleCacheKey(moduleKey, filters);
+      const cached = state.moduleCache[cacheKey];
+      const previewRows = getModulePreviewRows(moduleKey);
+      const initialRows = cached ? cached.rows : previewRows;
+
+      renderModuleShell(moduleKey, initialRows, {
+        loading: true,
+        preview: !cached && previewRows.length > 0
+      });
+
+      if (!state.moduleRequests[cacheKey]) {
+        state.moduleRequests[cacheKey] = server("listRecords", { module: meta.server, filters })
+          .finally(() => { delete state.moduleRequests[cacheKey]; });
+      }
+      const res = await state.moduleRequests[cacheKey];
+      if (isStale(token) || state.view !== moduleKey) return;
+
+      const rows = res.ok ? res.data.rows : [];
+      if (!res.ok) toast(res.error.message || "Erro ao carregar modulo.");
+      if (res.ok) {
+        state.moduleCache[cacheKey] = { rows, updatedAt: new Date().toISOString() };
+      }
+      renderModuleShell(moduleKey, rows, { loading: false });
+    }
+
+    function renderModuleShell(moduleKey, rows, options = {}) {
+      const meta = MODULES[moduleKey];
+      state.tableRows[moduleKey] = rows || [];
+      el.content.innerHTML = `
+        ${renderFilterBand()}
+        ${renderTableSurface(meta.title, rows || [], meta.columns, moduleKey, true, options)}
+      `;
+      bindFilters();
+      bindTableActions();
+    }
+
+    function getModulePreviewRows(moduleKey) {
+      const dash = state.app && state.app.dashboard ? state.app.dashboard : {};
+      const previews = {
+        regulations: dash.latestRegulations,
+        beds: dash.pendingBeds,
+        procedures: dash.pendingProcedures,
+        icu: dash.icu,
+        blocks: dash.blocks
+      };
+      return (previews[moduleKey] || []).slice();
+    }
+
+    function moduleCacheKey(moduleKey, filters) {
+      return `${moduleKey}:${stableStringify(filters || {})}`;
+    }
+
+    function stableStringify(value) {
+      if (value === null || typeof value !== "object") return JSON.stringify(value);
+      if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+      return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+    }
+
+    function clearModuleCache(moduleKey) {
+      if (!moduleKey) {
+        state.moduleCache = {};
+        state.tableRows = {};
+        return;
+      }
+      Object.keys(state.moduleCache).forEach(key => {
+        if (key.startsWith(`${moduleKey}:`)) delete state.moduleCache[key];
+      });
+      delete state.tableRows[moduleKey];
+    }
+
+    async function renderModuleLegacy(moduleKey, token) {
+      const meta = MODULES[moduleKey];
       contentLoading();
       const res = await server("listRecords", { module: meta.server, filters: compactFilters() });
       if (isStale(token) || state.view !== moduleKey) return;
@@ -1041,11 +1116,14 @@
       bindTableActions();
     }
 
-    function renderTableSurface(title, rows, columns, moduleKey, includeAdd = false) {
+    function renderTableSurface(title, rows, columns, moduleKey, includeAdd = false, options = {}) {
       const meta = MODULES[moduleKey];
       const addButton = includeAdd
         ? `<button class="btn" data-export="${moduleKey}" type="button" ${rows && rows.length ? "" : "disabled"}>Exportar CSV</button>
            <button class="btn btn-primary" data-add="${moduleKey}" type="button">Novo registro</button>`
+        : "";
+      const syncBadge = includeAdd && options.loading
+        ? `<span class="tag info">${options.preview ? "Carregando lista completa..." : "Atualizando..."}</span>`
         : "";
       const body = rows && rows.length ? `
         <div class="table-wrap">
@@ -1069,7 +1147,7 @@
         <section class="surface">
           <div class="surface-header">
             <div class="surface-title"><h2>${esc(title)}</h2><span>${esc(meta ? meta.subtitle : "Dados operacionais")}</span></div>
-            <div class="toolbar">${addButton}</div>
+            <div class="toolbar">${syncBadge}${addButton}</div>
           </div>
           <div class="surface-body">${body}</div>
         </section>
@@ -1107,6 +1185,7 @@
       const meta = MODULES[moduleKey];
       const res = await server("deleteRecord", { module: meta.server, id });
       if (!res.ok) return toast(res.error.message || "Erro ao arquivar.");
+      clearModuleCache(moduleKey);
       toast("Registro arquivado.");
       await loadState();
       if (state.view !== "dashboard") renderModule(state.view);
@@ -1356,6 +1435,7 @@
 
       const saveBtn = el.drawerForm.querySelector('[type="submit"]');
       const isShift = state.editing.type === "shift";
+      const editedModuleKey = state.editing.moduleKey;
       state.saving = true;
       if (saveBtn) { saveBtn.textContent = "Salvando…"; saveBtn.disabled = true; }
       try {
@@ -1364,6 +1444,7 @@
           : await server("saveRecord", { module: state.editing.moduleKey, record: data });
         if (!res.ok) return toast(res.error.message || "Erro ao salvar.");
         closeDrawer();
+        clearModuleCache(isShift ? null : editedModuleKey);
         toast(isShift ? "Plantão salvo." : "Registro salvo.");
         await loadState();
       } finally {
@@ -1383,6 +1464,7 @@
         const res = await server("closeShift", { filters: compactFilters() });
         if (!res.ok) return toast(res.error.message || "Erro ao encerrar.");
         state.report = res.data.report;
+        clearModuleCache();
         toast("Plantão encerrado e relatório salvo.");
         await loadState();
       } finally {
