@@ -975,6 +975,8 @@
       moduleRequests: {},
       auditLogRows: [],
       auditLogRequest: null,
+      archivedRecords: [],
+      archivedRecordsRequest: null,
       reportGenerating: false,
       reportRequest: null,
       report: null,
@@ -1416,6 +1418,22 @@
       if (state.view !== "dashboard") renderModule(state.view);
     }
 
+    async function restoreArchivedRecord(moduleKey, id) {
+      if (!id) return;
+      const ok = await askConfirm({
+        title: "Restaurar registro",
+        message: "Este registro voltará às listas ativas.",
+        acceptLabel: "Restaurar"
+      });
+      if (!ok) return;
+      const res = await server("restoreRecord", { module: moduleKey, id });
+      if (!res.ok) return toast(res.error.message || "Erro ao restaurar.", "danger");
+      clearModuleCache(moduleKey);
+      toast("Registro restaurado.", "ok");
+      state.archivedRecordsRequest = null;
+      await renderAudit(state.token);
+    }
+
     function exportModuleCsv(moduleKey) {
       const meta = MODULES[moduleKey];
       const rows = state.tableRows[moduleKey] || [];
@@ -1510,20 +1528,33 @@
     }
 
     async function renderAudit(token) {
-      renderAuditShell(state.auditLogRows, { loading: true });
+      renderAuditShell(state.auditLogRows, state.archivedRecords, { loading: true });
+
       if (!state.auditLogRequest) {
         state.auditLogRequest = server("listLog", { limit: 100 })
           .finally(() => { state.auditLogRequest = null; });
       }
-      const res = await state.auditLogRequest;
+      if (!state.archivedRecordsRequest) {
+        state.archivedRecordsRequest = server("listArchivedRecords", { limit: 50 })
+          .finally(() => { state.archivedRecordsRequest = null; });
+      }
+
+      const [logRes, archRes] = await Promise.all([state.auditLogRequest, state.archivedRecordsRequest]);
+
       if (isStale(token) || state.view !== "audit") return;
-      const rows = res.ok && res.data.rows ? res.data.rows : [];
-      if (!res.ok) toast(res.error.message || "Erro ao carregar historico.");
+
+      const rows = logRes && logRes.ok && logRes.data.rows ? logRes.data.rows : [];
+      if (logRes && !logRes.ok) toast(logRes.error.message || "Erro ao carregar historico.");
       state.auditLogRows = rows;
-      renderAuditShell(rows, { loading: false });
+
+      const archived = archRes && archRes.ok && archRes.data.archived ? archRes.data.archived : [];
+      if (archRes && !archRes.ok) toast(archRes.error.message || "Erro ao carregar registros arquivados.");
+      state.archivedRecords = archived;
+
+      renderAuditShell(rows, archived, { loading: false });
     }
 
-    function renderAuditShell(rows, options = {}) {
+    function renderAuditShell(rows, archived, options = {}) {
       const active = state.app.activeShift;
       el.content.innerHTML = `
         <section class="surface">
@@ -1551,6 +1582,7 @@
             </div>
           </div>
         </section>
+        ${renderArchivedRecordsSection(archived || [], options)}
         <section class="surface">
           <div class="surface-header">
             <div class="surface-title"><h2>Histórico de alterações</h2><span>Últimos eventos registrados em NIR_LOG</span></div>
@@ -1558,6 +1590,44 @@
           </div>
           <div class="surface-body" id="auditLog">${renderAuditRows(rows || [], options)}</div>
         </section>
+      `;
+    }
+
+    function renderArchivedRecordsSection(archived, options = {}) {
+      if (!archived.length) {
+        return `<section class="surface"><div class="surface-body"><div class="empty">${options.loading ? "Carregando registros arquivados..." : "Nenhum registro arquivado."}</div></div></section>`;
+      }
+      return `
+        <section class="surface">
+          <div class="surface-header">
+            <div class="surface-title"><h2>Registros arquivados</h2><span>Restaurar registros removidos</span></div>
+            <div class="toolbar">${options.loading ? '<span class="tag info">Atualizando...</span>' : ""}</div>
+          </div>
+          <div class="surface-body" id="archivedRecords">${renderArchivedRecords(archived, options)}</div>
+        </section>
+      `;
+    }
+
+    function renderArchivedRecords(records, options = {}) {
+      if (!records.length) {
+        return `<div class="empty">Nenhum registro arquivado.</div>`;
+      }
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Módulo</th><th scope="col">ID</th><th scope="col">Arquivado em</th><th scope="col">Ação</th></tr></thead>
+            <tbody>
+              ${records.map(record => `
+                <tr>
+                  <td>${esc(record.module || "-")}</td>
+                  <td>${esc(record.id || "-")}</td>
+                  <td>${esc(formatDateTimeBr(record.deleted_at))}</td>
+                  <td><button type="button" class="btn-icon" onclick="restoreArchivedRecord('${esc(record.module)}', '${esc(record.id)}')" title="Restaurar">↻</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
       `;
     }
 
