@@ -511,6 +511,56 @@
       gap: 8px;
     }
 
+    .confirm-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .confirm-modal.open {
+      display: flex;
+    }
+
+    .confirm-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 15, 20, 0.46);
+    }
+
+    .confirm-panel {
+      position: relative;
+      width: min(440px, 100%);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .confirm-panel h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .confirm-panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .empty {
       border: 1px dashed var(--line-strong);
       border-radius: var(--radius);
@@ -591,7 +641,7 @@
     }
 
     @media print {
-      .sidebar, .topbar, .filter-band, .surface-header .toolbar, .drawer, .toast { display: none !important; }
+      .sidebar, .topbar, .filter-band, .surface-header .toolbar, .drawer, .confirm-modal, .toast { display: none !important; }
       .app-shell { display: block; }
       .content { padding: 0; }
       .surface { box-shadow: none; border: none; }
@@ -647,6 +697,20 @@
           <button class="btn btn-primary" type="submit">Salvar</button>
         </footer>
       </form>
+    </div>
+  </section>
+
+  <section class="confirm-modal" id="confirmModal" aria-hidden="true">
+    <div class="confirm-backdrop" data-confirm-cancel></div>
+    <div class="confirm-panel" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div>
+        <h2 id="confirmTitle">Confirmar ação</h2>
+        <p id="confirmMessage"></p>
+      </div>
+      <div class="confirm-actions">
+        <button class="btn" id="confirmCancel" type="button">Cancelar</button>
+        <button class="btn btn-danger" id="confirmAccept" type="button">Confirmar</button>
+      </div>
     </div>
   </section>
 
@@ -819,7 +883,12 @@
       drawerTitle: document.getElementById("drawerTitle"),
       drawerSubtitle: document.getElementById("drawerSubtitle"),
       drawerBody: document.getElementById("drawerBody"),
-      drawerForm: document.getElementById("drawerForm")
+      drawerForm: document.getElementById("drawerForm"),
+      confirmModal: document.getElementById("confirmModal"),
+      confirmTitle: document.getElementById("confirmTitle"),
+      confirmMessage: document.getElementById("confirmMessage"),
+      confirmCancel: document.getElementById("confirmCancel"),
+      confirmAccept: document.getElementById("confirmAccept")
     };
 
     init();
@@ -858,9 +927,15 @@
       document.querySelectorAll("[data-close-drawer]").forEach(node => {
         node.addEventListener("click", closeDrawer);
       });
+      document.querySelectorAll("[data-confirm-cancel]").forEach(node => {
+        node.addEventListener("click", () => resolveConfirm(false));
+      });
+      el.confirmCancel.addEventListener("click", () => resolveConfirm(false));
+      el.confirmAccept.addEventListener("click", () => resolveConfirm(true));
       el.drawerForm.addEventListener("submit", submitDrawer);
       document.addEventListener("keydown", event => {
         if (event.key === "Escape" && el.drawer.classList.contains("open")) closeDrawer();
+        if (event.key === "Escape" && el.confirmModal.classList.contains("open")) resolveConfirm(false);
       });
     }
 
@@ -1185,7 +1260,12 @@
 
     async function archiveRecord(moduleKey, id) {
       if (!id) return;
-      if (!confirm("Arquivar este registro? Ele sai das listas mas fica no histórico de auditoria.")) return;
+      const ok = await askConfirm({
+        title: "Arquivar registro",
+        message: "Este registro sai das listas, mas continua salvo no histórico de auditoria.",
+        acceptLabel: "Arquivar"
+      });
+      if (!ok) return;
       const meta = MODULES[moduleKey];
       const res = await server("deleteRecord", { module: meta.server, id });
       if (!res.ok) return toast(res.error.message || "Erro ao arquivar.");
@@ -1461,6 +1541,31 @@
       state.editing = null;
     }
 
+    let pendingConfirmResolve = null;
+
+    function askConfirm(options = {}) {
+      if (pendingConfirmResolve) resolveConfirm(false);
+      el.confirmTitle.textContent = options.title || "Confirmar ação";
+      el.confirmMessage.textContent = options.message || "Deseja continuar?";
+      el.confirmAccept.textContent = options.acceptLabel || "Confirmar";
+      el.confirmAccept.classList.toggle("btn-danger", options.danger !== false);
+      el.confirmModal.classList.add("open");
+      el.confirmModal.setAttribute("aria-hidden", "false");
+      el.confirmAccept.focus();
+      return new Promise(resolve => {
+        pendingConfirmResolve = resolve;
+      });
+    }
+
+    function resolveConfirm(value) {
+      if (!pendingConfirmResolve) return;
+      const resolve = pendingConfirmResolve;
+      pendingConfirmResolve = null;
+      el.confirmModal.classList.remove("open");
+      el.confirmModal.setAttribute("aria-hidden", "true");
+      resolve(!!value);
+    }
+
     async function submitDrawer(event) {
       event.preventDefault();
       if (!state.editing || state.saving) return;
@@ -1491,7 +1596,12 @@
     async function closeShift() {
       if (!state.app || !state.app.activeShift) return toast("Nenhum plantão ativo.");
       if (state.saving) return;
-      if (!confirm("Encerrar o plantão e salvar snapshot do relatório?")) return;
+      const ok = await askConfirm({
+        title: "Encerrar plantão",
+        message: "O plantão ativo será encerrado e um snapshot leve será salvo. O relatório detalhado continua disponível na aba Relatório.",
+        acceptLabel: "Encerrar plantão"
+      });
+      if (!ok) return;
       const btn = document.getElementById("btnCloseShift");
       state.saving = true;
       if (btn) { btn.textContent = "Encerrando…"; btn.disabled = true; }
