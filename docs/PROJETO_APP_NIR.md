@@ -206,3 +206,16 @@ Regras:
 - acompanhar pendências entre plantões;
 - manter histórico confiável;
 - não expor dados sensíveis no repositório.
+
+## Ajuste de direcao - modelo visual solicitado
+
+Depois do alinhamento verbal de 18/06/2026, o app passa a priorizar uma camada visual por cima das tabelas normalizadas. A ideia nao e copiar a planilha nem criar uma nova aba por ocorrencia, mas transformar os mesmos dados em uma sala de situacao:
+
+- mapa de UIB/leitos por unidade, status e compatibilidade de especialidade;
+- calendario operacional de exames/procedimentos a partir da data programada;
+- fila protegida de pendencias que atravessam turno;
+- `RESERVA_CONFIRMADA` como status acompanhado, nao final;
+- bloqueio de arquivamento de itens abertos sem desfecho claro;
+- data e turno do plantao ajustaveis sem recriar manualmente a ocorrencia.
+
+Essa camada responde ao principal risco citado: dado ruim por copia manual, status atualizado sem continuidade e pendencia que some quando outra pessoa assume o plantao.

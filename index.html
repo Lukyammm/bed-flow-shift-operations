@@ -509,6 +509,206 @@
     .tag.danger { color: var(--danger); border-color: #f2bbc8; background: #fff1f4; }
     .tag.info { color: var(--info); border-color: #bfd0fb; background: #f0f5ff; }
 
+    .flow-hero {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) repeat(4, minmax(140px, 190px));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .flow-shift,
+    .flow-metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fbfcfd;
+      padding: 12px;
+      min-height: 128px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .flow-shift {
+      background: #fff;
+      padding: 14px;
+      gap: 10px;
+    }
+
+    .flow-shift strong {
+      font-size: 18px;
+    }
+
+    .flow-shift span,
+    .flow-note,
+    .flow-metric small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .flow-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .flow-metric span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .flow-metric strong {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .bed-map,
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .agenda-grid {
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .bed-unit,
+    .agenda-day {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .bed-unit-header,
+    .agenda-day header {
+      padding: 10px 12px;
+      background: #eef3f5;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .bed-unit-header strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .bed-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .bed-card,
+    .agenda-item,
+    .protected-item {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      padding: 9px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .04s ease;
+    }
+
+    .bed-card {
+      min-height: 104px;
+      gap: 5px;
+    }
+
+    .bed-card:hover,
+    .agenda-item:hover,
+    .protected-item:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .bed-card:active,
+    .agenda-item:active,
+    .protected-item:active {
+      transform: translateY(1px);
+    }
+
+    .bed-card.ok { border-left: 4px solid var(--ok); }
+    .bed-card.warn { border-left: 4px solid var(--warn); }
+    .bed-card.danger { border-left: 4px solid var(--danger); }
+    .bed-card.info { border-left: 4px solid var(--info); }
+
+    .bed-card strong,
+    .agenda-item strong,
+    .protected-main strong {
+      overflow-wrap: anywhere;
+    }
+
+    .bed-card small,
+    .agenda-item small,
+    .protected-item small {
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .bed-card .tag {
+      align-self: flex-start;
+    }
+
+    .alert-chip {
+      color: var(--danger);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .agenda-list,
+    .protected-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .agenda-item.is-late,
+    .protected-item.is-risk {
+      border-left: 4px solid var(--danger);
+    }
+
+    .agenda-item.is-today,
+    .protected-item.is-watch {
+      border-left: 4px solid var(--warn);
+    }
+
+    .protected-main {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .protected-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .empty.compact {
+      min-height: 118px;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
     .split {
       display: grid;
       grid-template-columns: minmax(0, 1.3fr) minmax(360px, 0.7fr);
@@ -908,6 +1108,8 @@
       }
       .side-note { display: none; }
       .stat-row, .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow-shift { grid-column: 1 / -1; }
       .filter-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .split { grid-template-columns: 1fr; }
     }
@@ -937,7 +1139,8 @@
     @media (max-width: 720px) {
       .content { padding: 14px; }
       .nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .stat-row, .grid-2, .grid-3, .grid-4, .filter-band { grid-template-columns: 1fr; }
+      .stat-row, .grid-2, .grid-3, .grid-4, .filter-band, .flow-hero { grid-template-columns: 1fr; }
+      .flow-shift { grid-column: auto; }
       .filter-band .toolbar {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1044,6 +1247,7 @@
 
     const NAV_ITEMS = [
       ["dashboard", "layout-dashboard", "Painel"],
+      ["flow", "workflow", "Fluxo visual"],
       ["report", "file-text", "Relatório"],
       ["regulations", "arrows-left-right", "Regulação"],
       ["beds", "bed", "UIB / Leitos"],
@@ -1167,7 +1371,7 @@
     };
 
     const DEFAULT_OPTIONS = {
-      statuses: ["NOVO", "EM_AVALIACAO", "AGUARDANDO_REGULACAO", "RESERVADO", "FALTA_CHEGAR", "INTERNADO", "NEGADO", "CANCELADO", "AGENDADO", "REAGENDADO", "REALIZADO", "CONCLUIDO", "PENDENTE", "LIVRE", "BLOQUEADO", "ALTA_24H", "AGUARDA_LEITO"],
+      statuses: ["NOVO", "EM_AVALIACAO", "AGUARDANDO_REGULACAO", "RESERVADO", "RESERVA_CONFIRMADA", "FALTA_CHEGAR", "INTERNADO", "NEGADO", "CANCELADO", "AGENDADO", "REAGENDADO", "REALIZADO", "CONCLUIDO", "PENDENTE", "LIVRE", "BLOQUEADO", "ALTA_24H", "AGUARDA_LEITO"],
       specialties: ["Clinica Medica", "Geriatria", "Reumatologia", "Pneumologia", "Hematologia", "Oncologia Clinica", "Cirurgia Oncologica", "Cirurgia Geral", "Coloproctologia", "Cirurgia Digestiva", "Cirurgia Ginecologica", "Cabeca e Pescoco", "Cirurgia Vascular", "Urologia", "Ortopedia", "Obstetricia", "UCINCO", "UTI Neonatal", "UTI Adulto", "Cardiopediatria", "Cirurgia Toracica", "Exame", "Hemodialise", "SAD/EMAD/CCC"],
       origins: ["CRL", "SAMU", "LOCAL", "SIREG", "AMBULATORIO"]
     };
@@ -1238,7 +1442,8 @@
         calendar: '<rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path>',
         "id-card": '<rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="12" r="2"></circle><path d="M14 10h4"></path><path d="M14 14h4"></path><path d="M7 16h4"></path>',
         search: '<circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>',
-        "rotate-ccw": '<path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path>'
+        "rotate-ccw": '<path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path>',
+        workflow: '<rect x="3" y="4" width="6" height="6" rx="1.5"></rect><rect x="15" y="14" width="6" height="6" rx="1.5"></rect><path d="M9 7h3a3 3 0 0 1 3 3v1"></path><path d="M15 17h-3a3 3 0 0 1-3-3v-1"></path>'
       };
       return `<svg class="icon icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name] || paths.search}</svg>`;
     }
@@ -1344,6 +1549,7 @@
       }
 
       if (view === "dashboard") renderDashboard();
+      else if (view === "flow") renderFlow(token);
       else if (view === "report") renderReport();
       else if (view === "audit") renderAudit(token);
       else renderModule(view, token);
@@ -1358,6 +1564,7 @@
     }
 
     function subtitleFor(view) {
+      if (view === "flow") return "Mapa visual de leitos, agenda e pendencias que atravessam turno";
       if (view === "dashboard") return "Leitura rápida do plantão e dos gargalos";
       if (view === "report") return "Gerador diário com filtros de troca de plantão";
       if (view === "audit") return "Histórico e governança operacional";
@@ -1482,6 +1689,336 @@
       `;
     }
 
+    async function renderFlow(token) {
+      const preview = flowRowsFromDashboard();
+      renderFlowShell(preview, { loading: true, preview: true });
+
+      const filters = compactFilters();
+      const keys = ["regulations", "beds", "procedures", "icu", "blocks"];
+      const results = await Promise.all(keys.map(key => server("listRecords", {
+        module: MODULES[key].server,
+        filters
+      })));
+      if (isStale(token) || state.view !== "flow") return;
+
+      const data = {};
+      let failed = false;
+      keys.forEach((key, index) => {
+        const res = results[index];
+        if (!res.ok) failed = true;
+        data[key] = res.ok ? res.data.rows : preview[key];
+        state.tableRows[key] = data[key] || [];
+      });
+      if (failed) toast("Algumas listas nao carregaram. Mantive a previa do painel.", "danger");
+      renderFlowShell(data, { loading: false });
+    }
+
+    function flowRowsFromDashboard() {
+      const dash = state.app && state.app.dashboard ? state.app.dashboard : {};
+      return {
+        regulations: state.tableRows.regulations || dash.latestRegulations || [],
+        beds: state.tableRows.beds || dash.pendingBeds || [],
+        procedures: state.tableRows.procedures || dash.pendingProcedures || [],
+        icu: state.tableRows.icu || dash.icu || [],
+        blocks: state.tableRows.blocks || dash.blocks || []
+      };
+    }
+
+    function renderFlowShell(data, options = {}) {
+      const d = data || flowRowsFromDashboard();
+      const protectedRows = buildProtectedRows(d);
+      const riskCount = protectedRows.filter(item => item.risk).length + (d.beds || []).filter(hasBedMismatch).length;
+      const todayProcedures = (d.procedures || []).filter(row => normalizeDateValue(row.data_programacao) === today() && !isFinal(row.status)).length;
+      const openBeds = (d.beds || []).filter(row => row.status_leito && row.status_leito !== "LIVRE").length;
+      const openBlocks = (d.blocks || []).filter(row => row.status !== "ENCERRADO").length;
+      const shift = state.app && state.app.activeShift;
+
+      el.content.innerHTML = `
+        ${renderFilterBand()}
+        <section class="surface">
+          <div class="surface-header">
+            <div class="surface-title">
+              <h2>Sala de situacao</h2>
+              <span>${options.loading ? "Carregando listas completas..." : "Visao unica para reduzir abas, copia manual e perda de pendencia"}</span>
+            </div>
+            <div class="toolbar">
+              ${options.loading ? '<span class="tag info">Atualizando...</span>' : ""}
+              <button class="btn" data-open-shift type="button">Data / turno</button>
+              <button class="btn btn-primary" data-goto-view="report" type="button">Gerar passagem</button>
+            </div>
+          </div>
+          <div class="surface-body flow-hero">
+            <div class="flow-shift">
+              <span>Plantao ativo</span>
+              <strong>${shift ? `${esc(formatDateBr(shift.data))} - ${esc(shift.turno || "-")}` : "Nenhum plantao aberto"}</strong>
+              <div class="flow-note">${shift ? esc(shift.observacao || "Ajuste data e turno sem criar uma nova area manual.") : "Abra um plantao para carimbar novos registros com data e turno."}</div>
+              <div class="flow-actions">
+                <button class="btn btn-small" data-open-shift type="button">${shift ? "Ajustar" : "Abrir plantao"}</button>
+                <button class="btn btn-small" data-goto-view="audit" type="button">Ver trilha</button>
+              </div>
+            </div>
+            ${flowMetric("Pendencias protegidas", protectedRows.length, "reservas, faltas chegar, exames e altas que nao devem sumir")}
+            ${flowMetric("Leitos em uso", openBeds, `${openBlocks} bloqueios abertos no filtro`)}
+            ${flowMetric("Hoje na agenda", todayProcedures, "procedimentos/exames ainda nao finalizados")}
+            ${flowMetric("Alertas de qualidade", riskCount, "itens sem proximo passo, data ou UIB compativel")}
+          </div>
+        </section>
+        <section class="split">
+          <div class="grid">
+            ${renderBedMapSurface(d.beds || [], "Mapa visual de UIB / leitos", "Clique em um leito para editar status, pendencia, transferencia ou desfecho.")}
+            ${renderProcedureCalendarSurface(d.procedures || [], "Agenda de exames e procedimentos", "O exame lancado vira evento por data e continua visivel ate receber desfecho.")}
+          </div>
+          <div class="grid">
+            ${renderProtectedQueueSurface(protectedRows)}
+            ${renderTableSurface("Regulacoes recentes", (d.regulations || []).slice(0, 10), MODULES.regulations.columns.slice(0, 8), "regulations")}
+          </div>
+        </section>
+      `;
+      bindFilters();
+      bindTableActions();
+      bindFlowActions();
+    }
+
+    function bindFlowActions() {
+      document.querySelectorAll("[data-open-shift]").forEach(btn => {
+        btn.addEventListener("click", openShiftDrawer);
+      });
+      document.querySelectorAll("[data-goto-view]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.view = btn.dataset.gotoView;
+          render();
+        });
+      });
+    }
+
+    function flowMetric(label, value, note) {
+      return `<div class="flow-metric"><span>${esc(label)}</span><strong>${Number(value || 0)}</strong><small>${esc(note || "")}</small></div>`;
+    }
+
+    function renderBedMapSurface(rows, title, subtitle) {
+      return `
+        <section class="surface">
+          <div class="surface-header">
+            <div class="surface-title"><h2>${esc(title)}</h2><span>${esc(subtitle || "Ocupacao por unidade e status do leito")}</span></div>
+            <div class="toolbar"><button class="btn btn-small" data-add="beds" type="button">Novo leito</button></div>
+          </div>
+          <div class="surface-body">${renderBedMap(rows)}</div>
+        </section>
+      `;
+    }
+
+    function renderBedMap(rows) {
+      const list = (rows || []).slice().sort((a, b) =>
+        String(a.unidade || "").localeCompare(String(b.unidade || "")) ||
+        String(a.leito || "").localeCompare(String(b.leito || ""))
+      );
+      if (!list.length) return `<div class="empty compact">Sem leitos no filtro atual.</div>`;
+      const groups = {};
+      list.forEach(row => {
+        const unit = row.unidade || "Unidade nao informada";
+        groups[unit] = groups[unit] || [];
+        groups[unit].push(row);
+      });
+      return `<div class="bed-map">${Object.keys(groups).sort().map(unit => {
+        const beds = groups[unit];
+        const active = beds.filter(row => row.status_leito && row.status_leito !== "LIVRE").length;
+        return `
+          <div class="bed-unit">
+            <div class="bed-unit-header"><strong>${esc(unit)}</strong><span class="tag info">${active}/${beds.length}</span></div>
+            <div class="bed-grid">
+              ${beds.map(row => {
+                const mismatch = hasBedMismatch(row);
+                return `
+                  <button class="bed-card ${statusTone(row.status_leito)}" data-edit="beds" data-id="${esc(row.id)}" type="button">
+                    <strong>${esc(row.leito || "Sem leito")}</strong>
+                    ${formatCell("status_leito", row.status_leito || "SEM_STATUS")}
+                    <small>${esc(row.paciente_alias || row.fastmedic || row.prontuario || "Sem paciente")}</small>
+                    <small>${esc(row.especialidade_destino || row.especialidade_origem || "")}</small>
+                    ${mismatch ? '<span class="alert-chip">UIB incompat.</span>' : ""}
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }).join("")}</div>`;
+    }
+
+    function renderProcedureCalendarSurface(rows, title, subtitle) {
+      return `
+        <section class="surface">
+          <div class="surface-header">
+            <div class="surface-title"><h2>${esc(title)}</h2><span>${esc(subtitle || "Agenda operacional")}</span></div>
+            <div class="toolbar"><button class="btn btn-small" data-add="procedures" type="button">Novo exame</button></div>
+          </div>
+          <div class="surface-body">${renderProcedureCalendar(rows)}</div>
+        </section>
+      `;
+    }
+
+    function renderProcedureCalendar(rows) {
+      const list = (rows || []).filter(row => !isFinal(row.status)).slice().sort((a, b) =>
+        String(a.data_programacao || "9999-99-99").localeCompare(String(b.data_programacao || "9999-99-99")) ||
+        String(a.hora_programacao || "").localeCompare(String(b.hora_programacao || ""))
+      );
+      if (!list.length) return `<div class="empty compact">Sem exames ou procedimentos pendentes.</div>`;
+      const groups = {};
+      list.forEach(row => {
+        const key = normalizeDateValue(row.data_programacao) || "sem-data";
+        groups[key] = groups[key] || [];
+        groups[key].push(row);
+      });
+      return `<div class="agenda-grid">${Object.keys(groups).sort().map(key => `
+        <div class="agenda-day">
+          <header><strong>${esc(key === "sem-data" ? "Sem data" : formatDateBr(key))}</strong><span class="tag info">${groups[key].length}</span></header>
+          <div class="agenda-list">
+            ${groups[key].map(row => {
+              const date = normalizeDateValue(row.data_programacao);
+              const klass = date && date < today() ? "is-late" : date === today() ? "is-today" : "";
+              return `
+                <button class="agenda-item ${klass}" data-edit="procedures" data-id="${esc(row.id)}" type="button">
+                  <strong>${esc(row.hora_programacao ? `${row.hora_programacao} - ${row.procedimento || row.tipo || "Procedimento"}` : (row.procedimento || row.tipo || "Procedimento"))}</strong>
+                  ${formatCell("status", row.status || "PENDENTE")}
+                  <small>${esc(row.paciente_alias || row.fastmedic || row.origem || "Sem identificador")}</small>
+                  <small>${esc(row.observacao || row.ultimo_contato || "")}</small>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `).join("")}</div>`;
+    }
+
+    function renderProtectedQueueSurface(items) {
+      const list = (items || []).slice(0, 24);
+      const body = list.length ? `
+        <div class="protected-list">
+          ${list.map(item => `
+            <button class="protected-item ${item.risk ? "is-risk" : "is-watch"}" data-edit="${esc(item.moduleKey)}" data-id="${esc(item.id)}" type="button">
+              <div class="protected-main">
+                <strong>${esc(item.title)}</strong>
+                ${formatCell(item.statusKey || "status", item.status || "PENDENTE")}
+              </div>
+              <small>${esc(item.note || "Sem proximo passo registrado.")}</small>
+              <div class="protected-meta">
+                ${item.meta.map(value => `<span class="tag info">${esc(value)}</span>`).join("")}
+                ${item.warnings.map(value => `<span class="tag danger">${esc(value)}</span>`).join("")}
+              </div>
+            </button>
+          `).join("")}
+        </div>
+      ` : `<div class="empty compact">Nada protegido no filtro. As pendencias com desfecho claro saem daqui.</div>`;
+      return `
+        <section class="surface">
+          <div class="surface-header">
+            <div class="surface-title"><h2>Fila protegida</h2><span>Itens que continuam atravessando turno ate cancelamento, negativa ou conclusao real</span></div>
+          </div>
+          <div class="surface-body">${body}</div>
+        </section>
+      `;
+    }
+
+    function buildProtectedRows(data) {
+      const items = [];
+      const add = (moduleKey, row, statusKey, title, note, meta) => {
+        const warnings = workflowWarnings(moduleKey, row);
+        items.push({
+          moduleKey,
+          id: row.id || "",
+          statusKey,
+          status: row[statusKey] || row.status || row.status_leito || row.tipo_bloqueio || "",
+          title,
+          note,
+          meta: (meta || []).filter(Boolean),
+          warnings,
+          risk: warnings.length > 0
+        });
+      };
+
+      (data.regulations || []).forEach(row => {
+        if (isFinal(row.status)) return;
+        add("regulations", row, "status", patient(row), row.observacao || row.justificativa, [
+          row.origem_regulacao, row.especialidade, row.unidade_origem
+        ]);
+      });
+      (data.beds || []).forEach(row => {
+        if (!row.status_leito || row.status_leito === "LIVRE" || isFinal(row.desfecho)) return;
+        add("beds", row, "status_leito", `${row.unidade || "UIB"} ${row.leito || ""}`.trim(), row.pendencia || row.observacao, [
+          patient(row), row.especialidade_destino || row.especialidade_origem
+        ]);
+      });
+      (data.procedures || []).forEach(row => {
+        if (isFinal(row.status)) return;
+        add("procedures", row, "status", row.procedimento || row.tipo || patient(row), row.observacao || row.ultimo_contato, [
+          row.data_programacao ? formatDateBr(row.data_programacao) : "Sem data", row.hora_programacao, patient(row)
+        ]);
+      });
+      (data.icu || []).forEach(row => {
+        if (isFinal(row.status)) return;
+        add("icu", row, "status", row.tipo || "UTI/SRPA", row.observacao || row.destino, [
+          patient(row), row.leito_atual, row.destino
+        ]);
+      });
+      (data.blocks || []).forEach(row => {
+        if (row.status === "ENCERRADO") return;
+        add("blocks", row, "status", `${row.tipo_bloqueio || "Bloqueio"} ${row.leito || ""}`.trim(), row.motivo || row.observacao, [
+          row.unidade, row.previsao ? formatDateBr(row.previsao) : ""
+        ]);
+      });
+
+      return items.sort((a, b) => Number(b.risk) - Number(a.risk) || String(a.title).localeCompare(String(b.title)));
+    }
+
+    function workflowWarnings(moduleKey, row) {
+      const warnings = [];
+      if (moduleKey === "regulations") {
+        if (["RESERVADO", "RESERVA_CONFIRMADA", "FALTA_CHEGAR"].includes(String(row.status || "").toUpperCase()) && !row.observacao && !row.justificativa) warnings.push("sem proximo passo");
+        if (String(row.status || "").toUpperCase() === "RESERVA_CONFIRMADA" && !row.chegou_em) warnings.push("sem chegada");
+      }
+      if (moduleKey === "beds") {
+        if (hasBedMismatch(row)) warnings.push("UIB incompat.");
+        if (row.status_leito !== "LIVRE" && !row.pendencia && !row.desfecho && !row.observacao) warnings.push("sem pendencia");
+      }
+      if (moduleKey === "procedures") {
+        if (!row.data_programacao) warnings.push("sem data");
+        if (normalizeDateValue(row.data_programacao) && normalizeDateValue(row.data_programacao) < today()) warnings.push("atrasado");
+      }
+      if (moduleKey === "icu" && !row.destino && /AGUARDA|ALTA/.test(String(row.status || row.tipo || "").toUpperCase())) warnings.push("sem destino");
+      if (moduleKey === "blocks" && !row.previsao) warnings.push("sem previsao");
+      return warnings;
+    }
+
+    function hasBedMismatch(row) {
+      const unit = plainText(row.unidade);
+      const specialty = plainText(row.especialidade_destino || row.especialidade_origem);
+      if (!unit || !specialty) return false;
+      const rules = [
+        { units: ["vascular"], specs: ["vascular"] },
+        { units: ["onco", "hemato"], specs: ["onco", "hemato"] },
+        { units: ["cirurg"], specs: ["cirurg", "ortopedia", "urologia", "coloprocto", "toracica"] },
+        { units: ["clinic"], specs: ["clinic", "geriatria", "pneumo", "reumato", "hematologia"] },
+        { units: ["obst"], specs: ["obst", "gineco"] },
+        { units: ["cardio", "ped"], specs: ["cardio", "ped", "ucinco", "neonatal"] }
+      ];
+      const rule = rules.find(item => item.units.some(value => unit.indexOf(value) !== -1));
+      return !!rule && !rule.specs.some(value => specialty.indexOf(value) !== -1);
+    }
+
+    function statusTone(status) {
+      const value = String(status || "").toUpperCase();
+      if (/NEGADO|CANCELADO|BLOQUEADO|MANUTENCAO/.test(value)) return "danger";
+      if (/RESERV|PENDENTE|AGUARDA|FALTA|ALTA_24H/.test(value)) return "warn";
+      if (/INTERNADO|CONCLUIDO|REALIZADO|LIVRE/.test(value)) return "ok";
+      return "info";
+    }
+
+    function plainText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
+    }
+
     async function renderModule(moduleKey, token) {
       const meta = MODULES[moduleKey];
       const filters = compactFilters();
@@ -1515,10 +2052,30 @@
       state.tableRows[moduleKey] = rows || [];
       el.content.innerHTML = `
         ${renderFilterBand()}
+        ${renderModuleVisual(moduleKey, rows || [])}
         ${renderTableSurface(meta.title, rows || [], meta.columns, moduleKey, true, options)}
       `;
       bindFilters();
       bindTableActions();
+    }
+
+    function renderModuleVisual(moduleKey, rows) {
+      if (moduleKey === "beds") {
+        return renderBedMapSurface(rows, "Mapa visual de UIB / leitos", "Visao rapida por unidade, status e compatibilidade de especialidade.");
+      }
+      if (moduleKey === "procedures") {
+        return renderProcedureCalendarSurface(rows, "Calendario operacional", "Procedimentos seguem visiveis por data ate receberem desfecho.");
+      }
+      if (moduleKey === "regulations") {
+        return renderProtectedQueueSurface(buildProtectedRows({
+          regulations: rows,
+          beds: [],
+          procedures: [],
+          icu: [],
+          blocks: []
+        }));
+      }
+      return "";
     }
 
     function getModulePreviewRows(moduleKey) {
@@ -2259,7 +2816,7 @@
     function formatCell(key, value) {
       if (!value) return "";
       if (key === "status" || key === "status_leito" || key === "tipo_bloqueio") {
-        const type = /NEGADO|CANCELADO|BLOQUEADO/.test(value) ? "danger" : /RESERVADO|PENDENTE|AGUARDA|FALTA/.test(value) ? "warn" : /INTERNADO|CONCLUIDO|REALIZADO|LIVRE/.test(value) ? "ok" : "info";
+        const type = /NEGADO|CANCELADO|BLOQUEADO/.test(value) ? "danger" : /RESERV|PENDENTE|AGUARDA|FALTA/.test(value) ? "warn" : /INTERNADO|CONCLUIDO|REALIZADO|LIVRE/.test(value) ? "ok" : "info";
         return `<span class="tag ${type}">${esc(value)}</span>`;
       }
       if (isDateOnlyKey(key)) return esc(formatDateBr(value));
@@ -2334,7 +2891,7 @@
         },
         saveRecord() {
           const list = store[payload.module] || [];
-          const record = Object.assign({}, payload.record);
+          const record = normalizeDemoRecord(payload.module, Object.assign({}, payload.record));
           const isNew = !record.id;
           record.id = record.id || `${payload.module.toUpperCase()}-${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
           record.updated_at = new Date().toISOString();
@@ -2350,6 +2907,9 @@
           const list = store[payload.module] || [];
           const item = list.find(r => r.id === payload.id);
           if (item) {
+            if (isProtectedArchive(payload.module, item)) {
+              return { ok: false, error: { message: "Este registro ainda esta em acompanhamento. Marque um desfecho claro antes de arquivar." } };
+            }
             item.deleted_at = new Date().toISOString();
             mockLog(store, payload.module, "REGISTRO_ARQUIVADO", payload.id);
             saveStore(store);
@@ -2407,7 +2967,7 @@
         },
         reports: [],
         regulations: [
-          { id: "REG-001", origem_regulacao: "CRL", fastmedic: "FM-DEMO-001", paciente_alias: "Paciente 001", data_solicitacao: today(), turno: "MT", ads: "ADS Fortaleza", municipio: "Fortaleza", unidade_origem: "Hospital de Origem A", especialidade: "Obstetricia", status: "RESERVADO", avaliado_por: "Dr. Exemplo B", justificativa: "Não se aplica", observacao: "Aguardar chegada e confirmar leito.", reservado_em: new Date().toISOString(), prioridade: "alta" },
+          { id: "REG-001", origem_regulacao: "CRL", fastmedic: "FM-DEMO-001", paciente_alias: "Paciente 001", data_solicitacao: today(), turno: "MT", ads: "ADS Fortaleza", municipio: "Fortaleza", unidade_origem: "Hospital de Origem A", especialidade: "Obstetricia", status: "RESERVA_CONFIRMADA", avaliado_por: "Dr. Exemplo B", justificativa: "Não se aplica", observacao: "Aguardar chegada e confirmar leito.", reservado_em: new Date().toISOString(), prioridade: "alta" },
           { id: "REG-002", origem_regulacao: "SAMU", fastmedic: "FM-DEMO-002", paciente_alias: "Paciente 002", data_solicitacao: today(), turno: "MT", ads: "ADS Sertão", municipio: "Município B", unidade_origem: "UPA Exemplo", especialidade: "Cirurgia Vascular", status: "NEGADO", avaliado_por: "Dra. Exemplo A", justificativa: "Dentro do perfil, mas sem vagas", observacao: "Manter em tela para reavaliação.", prioridade: "media" },
           { id: "REG-003", origem_regulacao: "LOCAL", fastmedic: "FM-DEMO-003", paciente_alias: "Paciente 003", data_solicitacao: today(), turno: "SN", municipio: "Fortaleza", unidade_origem: "Ambulatório", especialidade: "Oncologia Clinica", status: "INTERNADO", avaliado_por: "Dr. Exemplo C", justificativa: "Não se aplica", observacao: "Internação local concluída." }
         ],
@@ -2529,7 +3089,7 @@
     function kpis(regulations, beds, procedures, icu, blocks) {
       return {
         regulacoes: regulations.length,
-        reservados: regulations.filter(r => r.status === "RESERVADO").length,
+        reservados: regulations.filter(r => ["RESERVADO", "RESERVA_CONFIRMADA"].includes(r.status)).length,
         internados: regulations.filter(r => r.status === "INTERNADO").length,
         negados: regulations.filter(r => r.status === "NEGADO").length,
         cancelados: regulations.filter(r => r.status === "CANCELADO").length,
@@ -2568,6 +3128,31 @@
         map[label] = (map[label] || 0) + 1;
       });
       return Object.keys(map).map(label => ({ label, count: map[label] })).sort((a, b) => b.count - a.count);
+    }
+
+    function normalizeDemoRecord(moduleKey, record) {
+      const now = new Date().toISOString();
+      if (moduleKey === "regulations") {
+        const status = String(record.status || "").toUpperCase().replace(/\s+/g, "_");
+        if (["RESERVADO_CONFIRMADO", "CONFIRMADO", "RESERVA_CONFIRMADA"].includes(status)) record.status = "RESERVA_CONFIRMADA";
+        if (record.status === "RESERVA_CONFIRMADA" && !record.reservado_em) record.reservado_em = now;
+        if (record.status === "FALTA_CHEGAR" && !record.reservado_em) record.reservado_em = now;
+        if (record.status === "INTERNADO" && !record.internado_em) record.internado_em = now;
+        if (["CANCELADO", "NEGADO"].includes(record.status) && !record.cancelado_em) record.cancelado_em = now;
+      }
+      if (moduleKey === "procedures" && !record.status) record.status = "PENDENTE";
+      if (moduleKey === "blocks" && !record.status) record.status = "ABERTO";
+      return record;
+    }
+
+    function isProtectedArchive(moduleKey, row) {
+      if (!row) return false;
+      if (moduleKey === "regulations") return !!row.status && !isFinal(row.status);
+      if (moduleKey === "procedures") return !!row.status && !isFinal(row.status);
+      if (moduleKey === "beds") return row.status_leito && row.status_leito !== "LIVRE" && !isFinal(row.desfecho);
+      if (moduleKey === "icu") return !!row.status && !isFinal(row.status);
+      if (moduleKey === "blocks") return row.status && row.status !== "ENCERRADO";
+      return false;
     }
 
     function isFinal(status) {
