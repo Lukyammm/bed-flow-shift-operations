@@ -291,6 +291,44 @@ function listLog(payload) {
   });
 }
 
+function listArchivedRecords(payload) {
+  return runNir_(function () {
+    ensureAllSheets_();
+    const opts = payload || {};
+    const limit = opts.limit && opts.limit > 0 ? opts.limit : 50;
+    const archived = [];
+
+    Object.keys(NIR_SHEETS).forEach(function (moduleKey) {
+      if (moduleKey === "config" || moduleKey === "log" || moduleKey === "reports") return;
+      const records = readObjects_(moduleKey, { includeDeleted: true });
+      records.forEach(function (record) {
+        if (record.deleted_at) {
+          record.module = moduleKey;
+          archived.push(record);
+        }
+      });
+    });
+
+    archived.sort(function (a, b) { return String(b.deleted_at).localeCompare(String(a.deleted_at)); });
+    const limited = archived.slice(0, limit);
+    return { archived: limited, count: archived.length };
+  });
+}
+
+function restoreRecord(payload) {
+  return runNir_(function () {
+    ensureAllSheets_();
+    const moduleKey = payload && payload.module ? payload.module : "";
+    const id = payload && payload.id ? payload.id : "";
+    const before = findObject_(moduleKey, id, { includeDeleted: true });
+    if (!before || !before.deleted_at) return { restored: false };
+    const after = Object.assign({}, before, { deleted_at: "", updated_at: nowIso_() });
+    updateObject_(moduleKey, id, after);
+    writeLog_(moduleKey, "REGISTRO_RESTAURADO", id, before, after, "Restore from archive");
+    return { restored: true };
+  });
+}
+
 function seedDemoDataNIR() {
   return runNir_(function () {
     ensureAllSheets_();
@@ -550,9 +588,10 @@ function updateObject_(moduleKey, id, obj) {
   appendObject_(moduleKey, obj);
 }
 
-function findObject_(moduleKey, id) {
+function findObject_(moduleKey, id, opts) {
   if (!id) return null;
-  return readObjects_(moduleKey, { includeDeleted: true })
+  const options = Object.assign({ includeDeleted: true }, opts || {});
+  return readObjects_(moduleKey, options)
     .find(function (row) { return String(row.id) === String(id); }) || null;
 }
 
