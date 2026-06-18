@@ -518,6 +518,160 @@
       font-size: 13px;
     }
 
+    /* ----- Relatorio formatado (rich) ----- */
+    .report-doc {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .report-doc .doc-hero {
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+      color: #fff;
+      padding: 22px 24px;
+    }
+
+    .report-doc .doc-hero h2 {
+      margin: 0;
+      font-size: 19px;
+      letter-spacing: .2px;
+    }
+
+    .report-doc .doc-hero .doc-meta {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .report-doc .doc-hero .doc-meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 999px;
+      padding: 4px 11px;
+      font-size: 12px;
+    }
+
+    .report-doc .doc-body {
+      padding: 20px 24px 24px;
+    }
+
+    .report-doc .doc-empty {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .report-section { margin-top: 26px; }
+    .report-section:first-child { margin-top: 0; }
+
+    .report-section > h3 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .report-section > h3 .count-pill {
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--muted);
+      background: var(--surface-2);
+      border-radius: 999px;
+      padding: 1px 9px;
+    }
+
+    .report-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    .report-kpi {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      background: #fbfcfd;
+      border-left: 3px solid var(--line-strong);
+    }
+
+    .report-kpi.is-warn { border-left-color: var(--warn); }
+    .report-kpi.is-danger { border-left-color: var(--danger); }
+    .report-kpi.is-ok { border-left-color: var(--ok); }
+    .report-kpi.is-info { border-left-color: var(--info); }
+
+    .report-kpi span {
+      display: block;
+      color: var(--muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .report-kpi strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .report-kpi small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .report-dist {
+      display: grid;
+      gap: 7px;
+    }
+
+    .report-dist .dist-line {
+      display: grid;
+      grid-template-columns: minmax(120px, 180px) 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .report-dist .dist-track {
+      height: 9px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      overflow: hidden;
+    }
+
+    .report-dist .dist-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+
+    .report-dist .dist-line strong { font-variant-numeric: tabular-nums; }
+
+    .report-doc table { min-width: 0; }
+    .report-doc .table-wrap { border-radius: var(--radius); }
+
+    .report-twocol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 26px;
+    }
+
+    @media (max-width: 900px) {
+      .report-twocol { grid-template-columns: 1fr; }
+    }
+
     .drawer {
       position: fixed;
       inset: 0;
@@ -755,6 +909,13 @@
       .content { padding: 0; }
       .surface { box-shadow: none; border: none; }
       .report-preview { border: none; font-size: 12px; }
+      .report-doc { border: none; }
+      .report-doc .doc-hero,
+      .report-kpi, .report-dist .dist-fill, .report-dist .dist-track {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .report-section { break-inside: avoid; }
     }
   </style>
 </head>
@@ -980,6 +1141,7 @@
       reportGenerating: false,
       reportRequest: null,
       report: null,
+      reportRaw: false,
       editing: null
     };
 
@@ -1460,11 +1622,14 @@
     function renderReport() {
       const report = state.report;
       const isGenerating = state.reportGenerating;
-      const previewText = report
-        ? report.text
-        : isGenerating
-          ? "Gerando relatório com os filtros atuais...\n\nAguarde um instante. A tela será atualizada automaticamente quando o texto estiver pronto."
-          : "Defina os filtros e clique em Gerar relatório.";
+      const hasReport = report && report.text;
+      const body = hasReport
+        ? (state.reportRaw
+            ? `<div class="report-preview" id="reportPreview">${esc(report.text)}</div>`
+            : renderReportDocument(report))
+        : `<div class="report-doc"><div class="doc-empty">${isGenerating
+            ? "Gerando relatório com os filtros atuais... A tela será atualizada automaticamente."
+            : "Defina os filtros e clique em <strong>Gerar relatório</strong> para montar a passagem de plantão."}</div></div>`;
       el.content.innerHTML = `
         ${renderFilterBand(`
           <div class="field">
@@ -1484,19 +1649,179 @@
             <div class="toolbar">
               ${isGenerating ? '<span class="tag info">Gerando...</span>' : ""}
               <button class="btn btn-primary" id="btnGenerateReport" type="button" ${isGenerating ? "disabled" : ""}>${isGenerating ? "Gerando..." : "Gerar relatório"}</button>
-              <button class="btn" id="btnCopyReport" type="button" ${report && report.text ? "" : "disabled"}>Copiar texto</button>
-              <button class="btn" id="btnPrintReport" type="button" ${report && report.text ? "" : "disabled"}>Imprimir/PDF</button>
+              <button class="btn" id="btnToggleRaw" type="button" ${hasReport ? "" : "disabled"}>${state.reportRaw ? "Ver formatado" : "Ver texto"}</button>
+              <button class="btn" id="btnCopyReport" type="button" ${hasReport ? "" : "disabled"}>Copiar texto</button>
+              <button class="btn" id="btnPrintReport" type="button" ${hasReport ? "" : "disabled"}>Imprimir/PDF</button>
             </div>
           </div>
-          <div class="surface-body">
-            <div class="report-preview" id="reportPreview">${esc(previewText)}</div>
-          </div>
+          <div class="surface-body">${body}</div>
         </section>
       `;
       bindFilters();
       document.getElementById("btnGenerateReport").addEventListener("click", generateReport);
       document.getElementById("btnCopyReport").addEventListener("click", copyReport);
       document.getElementById("btnPrintReport").addEventListener("click", () => window.print());
+      const toggle = document.getElementById("btnToggleRaw");
+      if (toggle) toggle.addEventListener("click", () => { state.reportRaw = !state.reportRaw; renderReport(); });
+    }
+
+    function renderReportDocument(report) {
+      const only = report.filters && report.filters.reportModule ? report.filters.reportModule : "";
+      const show = key => !only || only === key;
+      const s = report.sections || {};
+      const k = report.kpis || {};
+      const num = v => Number(v || 0);
+
+      const meta = [
+        `<span>📅 ${esc(formatDateTimeBr(report.generatedAt))}</span>`,
+        report.plantao_id ? `<span>🪪 Plantão ${esc(formatShiftId(report.plantao_id))}</span>` : "",
+        only ? `<span>🔎 ${esc(MODULES[only] ? MODULES[only].title : only)}</span>` : `<span>🔎 Todos os módulos</span>`
+      ].filter(Boolean).join("");
+
+      const kpis = [
+        kpiCard("Regulações", num(k.regulacoes), `${num(k.pendentes)} pendentes`, num(k.pendentes) ? "info" : ""),
+        kpiCard("Reservados", num(k.reservados), "acompanhar chegada", num(k.reservados) ? "warn" : ""),
+        kpiCard("Internados", num(k.internados), "desfecho concluído", "ok"),
+        kpiCard("Negados", num(k.negados), "fora de perfil/vaga", num(k.negados) ? "danger" : ""),
+        kpiCard("Cancelados", num(k.cancelados), "regulações encerradas", ""),
+        kpiCard("Proc. pendentes", num(k.procedimentos_pendentes), "exames e cirurgias", num(k.procedimentos_pendentes) ? "warn" : ""),
+        kpiCard("Leitos UIB", num(k.leitos_ocupados_ou_reservados), "ocupados/reservados", ""),
+        kpiCard("Bloqueios", num(k.bloqueios_abertos), "leitos indisponíveis", num(k.bloqueios_abertos) ? "danger" : ""),
+        kpiCard("Altas UTI", num(k.altas_uti_aguardando_leito), "aguardando leito", num(k.altas_uti_aguardando_leito) ? "warn" : "")
+      ].join("");
+
+      const timeMetrics = [
+        kpiCard("Tempo até reserva", num(k.tempo_medio_reserva_horas), "horas (vaga → reserva)", "info"),
+        kpiCard("Tempo de chegada", num(k.tempo_medio_chegada_horas), "horas (reserva → chegada)", "info"),
+        kpiCard("Permanência média", num(k.permanencia_media_dias), "dias em UIB", "info")
+      ].join("");
+
+      const sections = [];
+
+      sections.push(reportSection("Visão geral", "", `<div class="report-kpi-grid">${kpis}</div>`));
+      sections.push(reportSection("Indicadores de tempo", "", `<div class="report-kpi-grid">${timeMetrics}</div>`));
+
+      if (show("regulations")) {
+        sections.push(`
+          <div class="report-twocol">
+            ${reportSection("Regulações por status", "", distribution(s.status, true))}
+            ${reportSection("Regulações por especialidade", "", distribution(s.especialidades, false))}
+          </div>
+        `);
+        const pend = (s.regulacoes || []).filter(r => !isFinal(r.status)).slice(0, 40);
+        sections.push(reportSection("Pendências de regulação", pend.length, reportTable(
+          ["Paciente", "Especialidade", "Origem", "Status", "Observação"],
+          pend.map(r => [
+            patient(r), r.especialidade, r.unidade_origem || r.origem_regulacao,
+            statusTag(r.status), r.observacao
+          ])
+        )));
+      }
+
+      if (show("beds")) {
+        const rows = (s.leitos || []).filter(r => r.status_leito !== "LIVRE").slice(0, 40);
+        sections.push(reportSection("UIB / Leitos", rows.length, reportTable(
+          ["Unidade", "Leito", "Paciente", "Especialidade", "Status", "Pendência"],
+          rows.map(r => [
+            r.unidade, r.leito, patient(r), r.especialidade_destino || r.especialidade_origem,
+            statusTag(r.status_leito), r.pendencia || r.observacao
+          ])
+        )));
+      }
+
+      if (show("procedures")) {
+        const rows = (s.procedimentos || []).filter(r => !isFinal(r.status)).slice(0, 40);
+        sections.push(reportSection("Procedimentos e exames", rows.length, reportTable(
+          ["Tipo", "Paciente", "Procedimento", "Programação", "Status"],
+          rows.map(r => [
+            r.tipo, patient(r), r.procedimento,
+            `${formatDateBr(r.data_programacao) || ""} ${r.hora_programacao || ""}`.trim(),
+            statusTag(r.status)
+          ])
+        )));
+      }
+
+      if (show("icu")) {
+        const rows = (s.uti || []).slice(0, 40);
+        sections.push(reportSection("UTI / SRPA", rows.length, reportTable(
+          ["Tipo", "Paciente", "Leito atual", "Destino", "Status"],
+          rows.map(r => [r.tipo, patient(r), r.leito_atual, r.destino, statusTag(r.status)])
+        )));
+      }
+
+      if (show("blocks")) {
+        const rows = (s.bloqueios || []).filter(r => r.status !== "ENCERRADO").slice(0, 40);
+        sections.push(reportSection("Bloqueios", rows.length, reportTable(
+          ["Tipo", "Unidade", "Leito", "Motivo", "Status"],
+          rows.map(r => [statusTag(r.tipo_bloqueio), r.unidade, r.leito, r.motivo || r.observacao, statusTag(r.status)])
+        )));
+      }
+
+      return `
+        <div class="report-doc" id="reportDoc">
+          <div class="doc-hero">
+            <h2>Relatório de passagem de plantão — NIR</h2>
+            <div class="doc-meta">${meta}</div>
+          </div>
+          <div class="doc-body">${sections.join("")}</div>
+        </div>
+      `;
+    }
+
+    function reportSection(title, count, inner) {
+      const pill = (count || count === 0) && count !== "" ? `<span class="count-pill">${count}</span>` : "";
+      return `<section class="report-section"><h3>${esc(title)}${pill}</h3>${inner}</section>`;
+    }
+
+    function kpiCard(title, value, note, tone) {
+      return `<div class="report-kpi ${tone ? "is-" + tone : ""}"><span>${esc(title)}</span><strong>${value}</strong><small>${esc(note || "")}</small></div>`;
+    }
+
+    function distribution(rows, asTag) {
+      if (!rows || !rows.length) return `<div class="empty">Sem dados no filtro.</div>`;
+      const max = Math.max(1, ...rows.map(r => Number(r.count) || 0));
+      return `<div class="report-dist">${rows.slice(0, 12).map(r => {
+        const count = Number(r.count) || 0;
+        const labelHtml = asTag && r.label ? formatCell("status", r.label) : esc(r.label || "-");
+        return `
+        <div class="dist-line">
+          <div class="bar-label" title="${esc(r.label)}">${labelHtml}</div>
+          <div class="dist-track"><div class="dist-fill" style="width:${Math.max(4, count / max * 100)}%"></div></div>
+          <strong>${count}</strong>
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    function reportTable(headers, rows) {
+      if (!rows || !rows.length) return `<div class="empty">Nenhum registro em aberto.</div>`;
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead><tr>${headers.map(h => `<th scope="col">${esc(h)}</th>`).join("")}</tr></thead>
+            <tbody>
+              ${rows.map(cells => `<tr>${cells.map(reportCell).join("")}</tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function reportCell(value) {
+      if (value && typeof value === "object" && value.html !== undefined) return `<td>${value.html}</td>`;
+      const text = String(value ?? "").trim();
+      return `<td>${text ? esc(text) : "-"}</td>`;
+    }
+
+    function statusTag(value) {
+      return value ? { html: formatCell("status", value) } : "-";
+    }
+
+    function patient(row) {
+      return row.paciente_alias || row.paciente_nome || row.prontuario || row.fastmedic || "Sem identificador";
+    }
+
+    function formatShiftId(shiftId) {
+      return String(shiftId || "").replace(/(\d{4})(\d{2})(\d{2})/g, (_, y, m, d) => `${d}${m}${y}`);
     }
 
     async function generateReport() {
@@ -2093,7 +2418,24 @@
         lines.push("", "BLOQUEIOS",
           ...filterMock(store.blocks, filters).filter(row => row.status !== "ENCERRADO").map(row => `- ${row.tipo_bloqueio || "-"} | ${row.unidade || "-"} ${row.leito || "-"} | ${row.motivo || row.observacao || ""}`));
       }
-      return { id: "REL-DEMO", text: lines.join("\n"), kpis: d.kpis, generatedAt: new Date().toISOString() };
+      return {
+        id: "REL-DEMO",
+        text: lines.join("\n"),
+        kpis: d.kpis,
+        generatedAt: new Date().toISOString(),
+        plantao_id: store.activeShift ? store.activeShift.id : "",
+        filters: filters,
+        sections: {
+          resumo: [],
+          regulacoes: filterMock(store.regulations, filters),
+          leitos: filterMock(store.beds, filters),
+          procedimentos: filterMock(store.procedures, filters),
+          uti: filterMock(store.icu, filters),
+          bloqueios: filterMock(store.blocks, filters),
+          especialidades: d.bySpecialty,
+          status: d.byStatus
+        }
+      };
     }
 
     function filterMock(rows, filters) {
