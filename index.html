@@ -94,12 +94,35 @@
       grid-template-columns: 24px 1fr;
       align-items: center;
       gap: 8px;
+      position: relative;
+      transition: background .15s ease, border-color .15s ease, color .15s ease;
     }
 
     .nav button:hover,
     .nav button.active {
       border-color: rgba(255,255,255,0.16);
       background: rgba(255,255,255,0.08);
+    }
+
+    .nav button.active {
+      color: #ffffff;
+    }
+
+    .nav button.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 999px;
+      background: #2dd4bf;
+    }
+
+    .nav button > span:first-child {
+      color: #6fd3c7;
+      font-size: 15px;
+      text-align: center;
     }
 
     .side-note {
@@ -249,6 +272,13 @@
       padding: 12px;
       background: #fbfcfd;
       min-height: 86px;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .stat:hover {
+      border-color: var(--line-strong);
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
     }
 
     .stat span {
@@ -322,10 +352,40 @@
       min-height: 38px;
       font-weight: 700;
       white-space: nowrap;
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .04s ease;
     }
 
     .btn:hover {
       border-color: #7c8a95;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary:hover { background: #0c5f59; border-color: #0c5f59; }
+    .btn-danger:hover { background: #a10e34; border-color: #a10e34; }
+
+    .btn:disabled,
+    .btn[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn:disabled:hover,
+    .btn[disabled]:hover {
+      border-color: var(--line-strong);
+    }
+
+    .btn:focus-visible,
+    .nav button:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, 0.5);
+      outline-offset: 2px;
+    }
+
+    .nav button:focus-visible {
+      outline-color: rgba(255, 255, 255, 0.65);
     }
 
     .btn-primary {
@@ -461,18 +521,26 @@
     .drawer {
       position: fixed;
       inset: 0;
-      display: none;
       z-index: 20;
+      visibility: hidden;
+      transition: visibility 0s linear .25s;
     }
 
     .drawer.open {
-      display: block;
+      visibility: visible;
+      transition-delay: 0s;
     }
 
     .drawer-backdrop {
       position: absolute;
       inset: 0;
       background: rgba(10, 15, 20, 0.42);
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .drawer.open .drawer-backdrop {
+      opacity: 1;
     }
 
     .drawer-panel {
@@ -485,6 +553,12 @@
       box-shadow: -10px 0 30px rgba(0,0,0,0.18);
       display: flex;
       flex-direction: column;
+      transform: translateX(100%);
+      transition: transform .25s ease;
+    }
+
+    .drawer.open .drawer-panel {
+      transform: translateX(0);
     }
 
     .drawer-header {
@@ -515,14 +589,21 @@
       position: fixed;
       inset: 0;
       z-index: 30;
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
       padding: 18px;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease, visibility 0s linear .18s;
     }
 
     .confirm-modal.open {
-      display: flex;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity .18s ease;
     }
 
     .confirm-backdrop {
@@ -541,6 +622,12 @@
       padding: 18px;
       display: grid;
       gap: 14px;
+      transform: translateY(8px) scale(0.98);
+      transition: transform .18s ease;
+    }
+
+    .confirm-modal.open .confirm-panel {
+      transform: none;
     }
 
     .confirm-panel h2 {
@@ -576,17 +663,31 @@
       position: fixed;
       left: 50%;
       bottom: 20px;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(10px);
       background: #101820;
       color: #fff;
       border-radius: var(--radius);
-      padding: 10px 14px;
+      padding: 10px 14px 10px 16px;
       box-shadow: var(--shadow);
-      display: none;
+      border-left: 4px solid #475569;
+      max-width: min(440px, calc(100% - 32px));
       z-index: 50;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
     }
 
-    .toast.show { display: block; }
+    .toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.ok { border-left-color: #34d399; }
+    .toast.danger { border-left-color: #fb7185; }
+    .toast.info { border-left-color: #60a5fa; }
 
     @media (max-width: 1100px) {
       .app-shell { grid-template-columns: 1fr; }
@@ -640,6 +741,14 @@
       .bar-line { grid-template-columns: 1fr; }
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
     @media print {
       .sidebar, .topbar, .filter-band, .surface-header .toolbar, .drawer, .confirm-modal, .toast { display: none !important; }
       .app-shell { display: block; }
@@ -680,9 +789,9 @@
     </main>
   </div>
 
-  <section class="drawer" id="drawer">
+  <section class="drawer" id="drawer" aria-hidden="true">
     <div class="drawer-backdrop" data-close-drawer></div>
-    <div class="drawer-panel">
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
       <header class="drawer-header">
         <div>
           <strong id="drawerTitle">Registro</strong>
@@ -714,7 +823,7 @@
     </div>
   </section>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
     const hasAppsScript = typeof google !== "undefined" && google.script && google.script.run;
@@ -901,8 +1010,8 @@
 
     function renderNav() {
       el.nav.innerHTML = NAV_ITEMS.map(([key, icon, label]) => `
-        <button type="button" data-view="${key}" class="${state.view === key ? "active" : ""}">
-          <span>${icon}</span><span>${label}</span>
+        <button type="button" data-view="${key}" class="${state.view === key ? "active" : ""}" aria-current="${state.view === key ? "page" : "false"}">
+          <span aria-hidden="true">${icon}</span><span>${label}</span>
         </button>
       `).join("");
       el.nav.querySelectorAll("button").forEach(button => {
@@ -916,7 +1025,9 @@
 
     function setNavActive(viewKey) {
       el.nav.querySelectorAll("button").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.view === viewKey);
+        const isActive = btn.dataset.view === viewKey;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-current", isActive ? "page" : "false");
       });
     }
 
@@ -936,7 +1047,30 @@
       document.addEventListener("keydown", event => {
         if (event.key === "Escape" && el.drawer.classList.contains("open")) closeDrawer();
         if (event.key === "Escape" && el.confirmModal.classList.contains("open")) resolveConfirm(false);
+        if (event.key === "Tab") trapFocus(event);
       });
+    }
+
+    function trapFocus(event) {
+      const container = el.confirmModal.classList.contains("open")
+        ? el.confirmModal.querySelector(".confirm-panel")
+        : el.drawer.classList.contains("open")
+          ? el.drawer.querySelector(".drawer-panel")
+          : null;
+      if (!container) return;
+      const focusables = container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     async function loadState() {
@@ -1037,13 +1171,20 @@
     }
 
     function bindFilters() {
-      document.getElementById("btnApplyFilters").addEventListener("click", () => {
+      const apply = () => {
         state.filters.dateFrom = document.getElementById("filterDateFrom").value;
         state.filters.dateTo = document.getElementById("filterDateTo").value;
         state.filters.turno = document.getElementById("filterTurno").value;
         state.filters.search = document.getElementById("filterSearch").value;
         state.filters.onlyPending = document.getElementById("filterOnlyPending").value === "true";
         loadState();
+      };
+      document.getElementById("btnApplyFilters").addEventListener("click", apply);
+      document.getElementById("filterSearch").addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          apply();
+        }
       });
       document.getElementById("btnClearFilters").addEventListener("click", () => {
         state.filters = { dateFrom: "", dateTo: "", turno: "TODOS", search: "", onlyPending: false };
@@ -1207,7 +1348,7 @@
       const body = rows && rows.length ? `
         <div class="table-wrap">
           <table>
-            <thead><tr>${columns.map(c => `<th>${label(c)}</th>`).join("")}<th>Ações</th></tr></thead>
+            <thead><tr>${columns.map(c => `<th scope="col">${label(c)}</th>`).join("")}<th scope="col">Ações</th></tr></thead>
             <tbody>
               ${rows.map(row => `
                 <tr>
@@ -1268,9 +1409,9 @@
       if (!ok) return;
       const meta = MODULES[moduleKey];
       const res = await server("deleteRecord", { module: meta.server, id });
-      if (!res.ok) return toast(res.error.message || "Erro ao arquivar.");
+      if (!res.ok) return toast(res.error.message || "Erro ao arquivar.", "danger");
       clearModuleCache(moduleKey);
-      toast("Registro arquivado.");
+      toast("Registro arquivado.", "ok");
       await loadState();
       if (state.view !== "dashboard") renderModule(state.view);
     }
@@ -1353,9 +1494,9 @@
             .finally(() => { state.reportRequest = null; });
         }
         const res = await state.reportRequest;
-        if (!res.ok) return toast(res.error.message || "Erro ao gerar relatório.");
+        if (!res.ok) return toast(res.error.message || "Erro ao gerar relatório.", "danger");
         state.report = res.data;
-        toast("Relatório gerado.");
+        toast("Relatório gerado.", "ok");
       } finally {
         state.reportGenerating = false;
         renderReport();
@@ -1363,9 +1504,9 @@
     }
 
     async function copyReport() {
-      if (!state.report || !state.report.text) return toast("Gere o relatório primeiro.");
+      if (!state.report || !state.report.text) return toast("Gere o relatório primeiro.", "info");
       await navigator.clipboard.writeText(state.report.text);
-      toast("Texto copiado.");
+      toast("Texto copiado.", "ok");
     }
 
     async function renderAudit(token) {
@@ -1427,7 +1568,7 @@
       return `
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data/hora</th><th>Usuário</th><th>Módulo</th><th>Ação</th><th>Registro</th></tr></thead>
+            <thead><tr><th scope="col">Data/hora</th><th scope="col">Usuário</th><th scope="col">Módulo</th><th scope="col">Ação</th><th scope="col">Registro</th></tr></thead>
             <tbody>
               ${rows.map(row => `
                 <tr>
@@ -1532,13 +1673,24 @@
       return `<div class="field"><label>${esc(title)}</label><input class="input" type="${type}" name="${name}" value="${esc(inputValue)}"></div>`;
     }
 
+    let drawerLastFocus = null;
+
     function openDrawer() {
+      drawerLastFocus = document.activeElement;
       el.drawer.classList.add("open");
+      el.drawer.setAttribute("aria-hidden", "false");
+      const first = el.drawerBody.querySelector("input, select, textarea, button");
+      if (first) setTimeout(() => first.focus(), 60);
     }
 
     function closeDrawer() {
       el.drawer.classList.remove("open");
+      el.drawer.setAttribute("aria-hidden", "true");
       state.editing = null;
+      if (drawerLastFocus && typeof drawerLastFocus.focus === "function") {
+        drawerLastFocus.focus();
+        drawerLastFocus = null;
+      }
     }
 
     let pendingConfirmResolve = null;
@@ -1582,10 +1734,10 @@
         const res = isShift
           ? await server(state.app && state.app.activeShift ? "updateShift" : "startShift", data)
           : await server("saveRecord", { module: state.editing.moduleKey, record: data });
-        if (!res.ok) return toast(res.error.message || "Erro ao salvar.");
+        if (!res.ok) return toast(res.error.message || "Erro ao salvar.", "danger");
         closeDrawer();
         clearModuleCache(isShift ? null : editedModuleKey);
-        toast(isShift ? "Plantão salvo." : "Registro salvo.");
+        toast(isShift ? "Plantão salvo." : "Registro salvo.", "ok");
         await loadState();
       } finally {
         state.saving = false;
@@ -1607,10 +1759,10 @@
       if (btn) { btn.textContent = "Encerrando…"; btn.disabled = true; }
       try {
         const res = await server("closeShift", { filters: compactFilters() });
-        if (!res.ok) return toast(res.error.message || "Erro ao encerrar.");
+        if (!res.ok) return toast(res.error.message || "Erro ao encerrar.", "danger");
         state.report = res.data.report;
         clearModuleCache();
-        toast("Plantão encerrado e relatório salvo.");
+        toast("Plantão encerrado e relatório salvo.", "ok");
         await loadState();
       } finally {
         state.saving = false;
@@ -1664,8 +1816,10 @@
       return String(value).padStart(2, "0");
     }
 
-    function toast(message) {
+    function toast(message, type = "") {
       el.toast.textContent = message;
+      el.toast.classList.remove("ok", "danger", "info");
+      if (type) el.toast.classList.add(type);
       el.toast.classList.add("show");
       clearTimeout(toast.timer);
       toast.timer = setTimeout(() => el.toast.classList.remove("show"), 2600);
