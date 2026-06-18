@@ -269,6 +269,9 @@ function deleteRecord(payload) {
     const id = payload && payload.id ? payload.id : "";
     const before = findObject_(moduleKey, id);
     if (!before) return { deleted: false };
+    if (isProtectedOpenRecord_(moduleKey, before)) {
+      throw new Error("Este registro ainda esta em acompanhamento. Antes de arquivar, marque um desfecho claro: cancelado, negado, concluido, realizado, internado, livre ou encerrado.");
+    }
     const after = Object.assign({}, before, { deleted_at: nowIso_(), updated_at: nowIso_() });
     updateObject_(moduleKey, id, after);
     writeLog_(moduleKey, "REGISTRO_ARQUIVADO", id, before, after, "Soft delete");
@@ -347,7 +350,7 @@ function seedDemoDataNIR() {
         origem_regulacao: "CRL", fastmedic: "FM-DEMO-001", paciente_alias: "Paciente 001",
         data_solicitacao: normalizeDate_(nowIso_()), turno: "MT", ads: "ADS Fortaleza",
         municipio: "Fortaleza", unidade_origem: "Hospital de Origem A",
-        especialidade: "Obstetricia", status: "RESERVADO", avaliado_por: "Dr. Exemplo B",
+        especialidade: "Obstetricia", status: "RESERVA_CONFIRMADA", avaliado_por: "Dr. Exemplo B",
         justificativa: "Nao se aplica", observacao: "Aguardar chegada e confirmar leito.",
         reservado_em: nowIso_(), prioridade: "alta"
       },
@@ -607,7 +610,36 @@ function normalizeRecord_(moduleKey, data, activeShift, now) {
   record.plantao_id = record.plantao_id || (activeShift ? activeShift.id : "");
   if (record.turno) record.turno = normalizeTurno_(record.turno);
   if (!record.turno && activeShift) record.turno = activeShift.turno;
+  normalizeWorkflowRecord_(moduleKey, record, now);
   return record;
+}
+
+function normalizeWorkflowRecord_(moduleKey, record, now) {
+  if (moduleKey === "regulations") {
+    const rawStatus = normalizeText_(record.status).toUpperCase().replace(/\s+/g, "_");
+    const aliases = {
+      RESERVADO_CONFIRMADO: "RESERVA_CONFIRMADA",
+      RESERVA_CONFIRMADA: "RESERVA_CONFIRMADA",
+      CONFIRMADO: "RESERVA_CONFIRMADA"
+    };
+    if (aliases[rawStatus]) record.status = aliases[rawStatus];
+    if (record.status === "RESERVA_CONFIRMADA" && !record.reservado_em) record.reservado_em = now;
+    if (record.status === "FALTA_CHEGAR" && !record.reservado_em) record.reservado_em = now;
+    if (record.status === "INTERNADO" && !record.internado_em) record.internado_em = now;
+    if ((record.status === "CANCELADO" || record.status === "NEGADO") && !record.cancelado_em) record.cancelado_em = now;
+  }
+  if (moduleKey === "procedures" && !record.status) record.status = "PENDENTE";
+  if (moduleKey === "blocks" && !record.status) record.status = "ABERTO";
+}
+
+function isProtectedOpenRecord_(moduleKey, row) {
+  if (!row) return false;
+  if (moduleKey === "regulations") return !!row.status && !isFinalStatus_(row.status);
+  if (moduleKey === "procedures") return !!row.status && !isFinalStatus_(row.status);
+  if (moduleKey === "beds") return row.status_leito && row.status_leito !== "LIVRE" && !isFinalStatus_(row.desfecho);
+  if (moduleKey === "icu") return !!row.status && !isFinalStatus_(row.status);
+  if (moduleKey === "blocks") return row.status && row.status !== "ENCERRADO";
+  return false;
 }
 
 function filterRows_(rows, filters) {
@@ -736,7 +768,7 @@ function buildCloseShiftSnapshotReport_(closedShift, payload) {
 }
 
 function calculateKpis_(regulations, beds, procedures, icu, blocks) {
-  const reserved = regulations.filter(function (row) { return row.status === "RESERVADO"; }).length;
+  const reserved = regulations.filter(function (row) { return row.status === "RESERVADO" || row.status === "RESERVA_CONFIRMADA"; }).length;
   const admitted = regulations.filter(function (row) { return row.status === "INTERNADO"; }).length;
   const denied = regulations.filter(function (row) { return row.status === "NEGADO"; }).length;
   const canceled = regulations.filter(function (row) { return row.status === "CANCELADO"; }).length;
@@ -849,7 +881,7 @@ function getOptions_() {
     turns: ["MT", "SN", "TODOS"],
     origins: ["CRL", "SAMU", "LOCAL", "SIREG", "AMBULATORIO"],
     statuses: [
-      "NOVO", "EM_AVALIACAO", "AGUARDANDO_REGULACAO", "RESERVADO", "FALTA_CHEGAR",
+      "NOVO", "EM_AVALIACAO", "AGUARDANDO_REGULACAO", "RESERVADO", "RESERVA_CONFIRMADA", "FALTA_CHEGAR",
       "INTERNADO", "NEGADO", "CANCELADO", "AGENDADO", "REAGENDADO", "REALIZADO",
       "CONCLUIDO", "PENDENTE", "LIVRE", "BLOQUEADO", "ALTA_24H", "AGUARDA_LEITO"
     ],

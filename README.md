@@ -24,10 +24,21 @@ O foco principal e gerar relatorios diarios de troca de plantao a partir de filt
 ## Funcionalidades
 
 - **Painel** com KPIs operacionais (regulacoes, reservados, internados, bloqueios, altas UTI) e indicadores de tempo medio (reserva, chegada e permanencia).
+- **Fluxo visual** com sala de situacao, mapa de UIB/leitos, agenda de exames/procedimentos e fila protegida para pendencias que atravessam turno.
 - **Relatorio diario** filtravel por periodo, turno, busca e modulo, com copia para area de transferencia e impressao/PDF.
-- **Modulos CRUD**: regulacao, UIB/leitos, procedimentos, UTI/SRPA e bloqueios, com arquivamento (soft delete) e exportacao CSV.
+- **Modulos CRUD**: regulacao, UIB/leitos, procedimentos, UTI/SRPA e bloqueios, com arquivamento protegido (soft delete) e exportacao CSV.
 - **Auditoria**: aba com historico real de alteracoes (NIR_LOG), alem da governanca de privacidade.
 - **Modo demo local**: roda sem backend usando `localStorage`, util para testes e demonstracoes.
+
+## Ajuste para o modelo operacional solicitado
+
+O app evita a logica de "varias abas" como ponto de trabalho. A interface concentra os registros em uma visao unica:
+
+- UIB/leitos aparecem como mapa visual por unidade, com alerta de especialidade potencialmente incompativel.
+- Procedimentos e exames aparecem em calendario operacional a partir da data programada.
+- Registros em acompanhamento ficam em fila protegida ate receberem desfecho claro.
+- `RESERVA_CONFIRMADA` continua sendo pendencia operacional, nao status final.
+- Arquivar registro aberto e bloqueado para reduzir erro de copia/cola entre plantoes.
 
 ## Abas criadas no Google Sheets
 
