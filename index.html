@@ -122,10 +122,24 @@
       background: #2dd4bf;
     }
 
-    .nav button > span:first-child {
+    .nav .icon {
       color: #6fd3c7;
-      font-size: 15px;
-      text-align: center;
+      width: 18px;
+      height: 18px;
+      justify-self: center;
+      stroke-width: 2.2;
+    }
+
+    .icon {
+      width: 1em;
+      height: 1em;
+      display: inline-block;
+      flex: 0 0 auto;
+      vertical-align: -0.15em;
+      stroke: currentColor;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .side-note {
@@ -413,6 +427,36 @@
       font-size: 12px;
     }
 
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease, transform .04s ease;
+    }
+
+    .btn-icon:hover {
+      border-color: #7c8a95;
+      background: #f8fafb;
+    }
+
+    .btn-icon:active {
+      transform: translateY(1px);
+    }
+
+    .btn-icon .icon {
+      width: 16px;
+      height: 16px;
+      stroke-width: 2.2;
+    }
+
     .table-wrap {
       width: 100%;
       overflow: auto;
@@ -557,6 +601,12 @@
       border-radius: 999px;
       padding: 4px 11px;
       font-size: 12px;
+    }
+
+    .report-doc .doc-hero .doc-meta .icon {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2.3;
     }
 
     .report-doc .doc-body {
@@ -993,14 +1043,14 @@
     const hasAppsScript = typeof google !== "undefined" && google.script && google.script.run;
 
     const NAV_ITEMS = [
-      ["dashboard", "▦", "Painel"],
-      ["report", "▤", "Relatório"],
-      ["regulations", "⇄", "Regulação"],
-      ["beds", "▥", "UIB / Leitos"],
-      ["procedures", "□", "Procedimentos"],
-      ["icu", "↑", "UTI / SRPA"],
-      ["blocks", "×", "Bloqueios"],
-      ["audit", "≡", "Auditoria"]
+      ["dashboard", "layout-dashboard", "Painel"],
+      ["report", "file-text", "Relatório"],
+      ["regulations", "arrows-left-right", "Regulação"],
+      ["beds", "bed", "UIB / Leitos"],
+      ["procedures", "clipboard-list", "Procedimentos"],
+      ["icu", "activity", "UTI / SRPA"],
+      ["blocks", "lock", "Bloqueios"],
+      ["audit", "list-checks", "Auditoria"]
     ];
 
     const MODULES = {
@@ -1175,10 +1225,28 @@
       loadState();
     }
 
+    function icon(name) {
+      const paths = {
+        "layout-dashboard": '<rect x="3" y="3" width="7" height="9" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="16" width="7" height="5" rx="1.5"></rect>',
+        "file-text": '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h6"></path>',
+        "arrows-left-right": '<path d="m8 3-4 4 4 4"></path><path d="M4 7h16"></path><path d="m16 21 4-4-4-4"></path><path d="M20 17H4"></path>',
+        "bed": '<path d="M3 7v11"></path><path d="M21 12v6"></path><path d="M3 14h18"></path><path d="M7 14V9a2 2 0 0 1 2-2h8a4 4 0 0 1 4 4v3"></path><path d="M7 10h4"></path>',
+        "clipboard-list": '<rect x="8" y="2" width="8" height="4" rx="1.5"></rect><path d="M9 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3"></path><path d="M8 12h8"></path><path d="M8 16h8"></path>',
+        activity: '<path d="M22 12h-4l-3 8-6-16-3 8H2"></path>',
+        lock: '<rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path>',
+        "list-checks": '<path d="m3 7 1.5 1.5L8 5"></path><path d="M11 6h10"></path><path d="m3 13 1.5 1.5L8 11"></path><path d="M11 12h10"></path><path d="m3 19 1.5 1.5L8 17"></path><path d="M11 18h10"></path>',
+        calendar: '<rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4"></path><path d="M8 2v4"></path><path d="M3 10h18"></path>',
+        "id-card": '<rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="12" r="2"></circle><path d="M14 10h4"></path><path d="M14 14h4"></path><path d="M7 16h4"></path>',
+        search: '<circle cx="11" cy="11" r="7"></circle><path d="m21 21-4.3-4.3"></path>',
+        "rotate-ccw": '<path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v6h6"></path>'
+      };
+      return `<svg class="icon icon-${name}" aria-hidden="true" viewBox="0 0 24 24">${paths[name] || paths.search}</svg>`;
+    }
+
     function renderNav() {
-      el.nav.innerHTML = NAV_ITEMS.map(([key, icon, label]) => `
+      el.nav.innerHTML = NAV_ITEMS.map(([key, iconName, label]) => `
         <button type="button" data-view="${key}" class="${state.view === key ? "active" : ""}" aria-current="${state.view === key ? "page" : "false"}">
-          <span aria-hidden="true">${icon}</span><span>${label}</span>
+          ${icon(iconName)}<span>${label}</span>
         </button>
       `).join("");
       el.nav.querySelectorAll("button").forEach(button => {
@@ -1676,9 +1744,9 @@
       const num = v => Number(v || 0);
 
       const meta = [
-        `<span>📅 ${esc(formatDateTimeBr(report.generatedAt))}</span>`,
-        report.plantao_id ? `<span>🪪 Plantão ${esc(formatShiftId(report.plantao_id))}</span>` : "",
-        only ? `<span>🔎 ${esc(MODULES[only] ? MODULES[only].title : only)}</span>` : `<span>🔎 Todos os módulos</span>`
+        `<span>${icon("calendar")} ${esc(formatDateTimeBr(report.generatedAt))}</span>`,
+        report.plantao_id ? `<span>${icon("id-card")} Plantão ${esc(formatShiftId(report.plantao_id))}</span>` : "",
+        only ? `<span>${icon("search")} ${esc(MODULES[only] ? MODULES[only].title : only)}</span>` : `<span>${icon("search")} Todos os módulos</span>`
       ].filter(Boolean).join("");
 
       const kpis = [
@@ -1950,7 +2018,7 @@
                   <td>${esc(record.module || "-")}</td>
                   <td>${esc(record.id || "-")}</td>
                   <td>${esc(formatDateTimeBr(record.deleted_at))}</td>
-                  <td><button type="button" class="btn-icon" onclick="restoreArchivedRecord('${esc(record.module)}', '${esc(record.id)}')" title="Restaurar">↻</button></td>
+                  <td><button type="button" class="btn-icon" onclick="restoreArchivedRecord('${esc(record.module)}', '${esc(record.id)}')" title="Restaurar">${icon("rotate-ccw")}</button></td>
                 </tr>
               `).join("")}
             </tbody>
