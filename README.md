@@ -53,6 +53,19 @@ O app evita a logica de "varias abas" como ponto de trabalho. A interface concen
 - `NIR_RELATORIOS`
 - `NIR_LOG`
 
+## Guia visual do sistema
+
+> Mockups demonstrativos do sistema, com dados ficticios e sem informacoes reais de pacientes ou da instituicao.
+
+### Sala de situacao
+![Sala de situacao](./docs/screenshots/situation-room.svg)
+
+### Mapa de leitos
+![Mapa de leitos](./docs/screenshots/bed-map.svg)
+
+### Relatorio diario
+![Relatorio diario](./docs/screenshots/daily-report.svg)
+
 ## Como rodar
 
 1. Crie uma planilha Google privada para o NIR.
