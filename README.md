@@ -1,6 +1,6 @@
-# NIR Shift Operations
+# Bed Flow Shift Operations
 
-Repository: `NIR`
+Repository: `bed-flow-shift-operations`
 
 ## Overview
 
